@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useData } from '../data/DataContext'
-import { MajorSearch } from '../components/MajorSearch'
 import { DigestSignup } from '../components/DigestSignup'
+import { ShareSheet } from '../components/ShareSheet'
 import { formatNumber, formatRatio, formatSalary, formatShare } from '../lib/format'
 import {
   AI_BAND_COPY,
@@ -26,7 +26,6 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
   const { majors, occupationsBySoc, crosswalk, eloundouBySoc, loading } = useData()
   const isV2 = aiMode === 'eloundou'
   const home = isV2 ? '/v2' : '/'
-  const resultsBase = isV2 ? '/v2/results' : '/results'
   const mapBase = isV2 ? '/v2/map' : '/map'
 
   const [sortField, setSortField] = useState<SortField>('entrySalary')
@@ -90,8 +89,9 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
           ← Back
         </Link>
         <h1 className="font-serif text-3xl text-ink">Major not found</h1>
-        <p className="text-muted mt-2 mb-8">Try searching for another field of study.</p>
-        <MajorSearch majors={majors} size="md" resultsBase={resultsBase} />
+        <p className="text-muted mt-2">
+          Try searching for another field of study in the header.
+        </p>
       </div>
     )
   }
@@ -105,23 +105,30 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         ← Back
       </Link>
 
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
+      <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2 break-words">
             {major.category} · CIP {major.cip}
             {isV2 ? ' · LLM Risk' : ''}
           </p>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
+          <h1 className="font-serif text-2xl sm:text-4xl text-ink tracking-tight text-balance">
             {major.name.replace(/\.$/, '')}
           </h1>
-          <p className="text-muted mt-3 max-w-xl">
+          <p className="text-muted mt-3 max-w-xl text-sm sm:text-base">
             {isV2
               ? 'BLS wages plus LLM Risk (share of tasks exposed to LLMs).'
               : 'Occupations linked to this major, with BLS entry wages, openings, competition, and AI exposure.'}
           </p>
         </div>
-        <div className="w-full lg:w-80 shrink-0">
-          <MajorSearch majors={majors} size="md" resultsBase={resultsBase} />
+        <div className="shrink-0 w-full sm:w-auto sm:pt-6">
+          <ShareSheet
+            title={major.name.replace(/\.$/, '')}
+            summary={
+              isV2
+                ? 'BLS wages and LLM Risk for careers linked to this major — from dear[CC] Field report.'
+                : 'BLS salaries, openings, and AI exposure for careers linked to this major — from dear[CC] Field report.'
+            }
+          />
         </div>
       </div>
 
@@ -129,7 +136,7 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <p className="text-muted">No occupations found for this major.</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+          <div className="flex flex-wrap items-center gap-2 mb-4 text-sm overflow-x-auto pb-1 -mx-1 px-1">
             <span className="text-muted">Sort:</span>
             <SortChip
               active={sortField === 'entrySalary'}
@@ -237,7 +244,23 @@ function OccupationTable({
   return (
     <section>
       <h2 className="font-serif text-xl text-ink mb-4">{title}</h2>
-      <div className="overflow-x-auto rounded-xl border border-border bg-white">
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {occupations.map((occ, i) => (
+          <OccCard
+            key={occ.soc}
+            occ={occ}
+            index={i}
+            aiMode={aiMode}
+            mapBase={mapBase}
+            eloundou={eloundouBySoc.get(occ.soc)}
+          />
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-white">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-surface text-muted text-xs uppercase tracking-wider">
             <tr>
@@ -364,6 +387,83 @@ function OccRow({
         </Link>
       </td>
     </motion.tr>
+  )
+}
+
+function OccCard({
+  occ,
+  index,
+  aiMode,
+  mapBase,
+  eloundou,
+}: {
+  occ: Occupation
+  index: number
+  aiMode: AiMode
+  mapBase: string
+  eloundou?: EloundouScore
+}) {
+  const competition = occ.competitionLevel as CompetitionLevel | null
+  const compMeta = competition ? COMPETITION_COPY[competition] : null
+  const isV2 = aiMode === 'eloundou'
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.2) }}
+      className="rounded-xl border border-border bg-white p-4"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-medium text-ink leading-snug">{occ.title}</h3>
+          <p className="text-xs text-muted font-mono mt-0.5">SOC {occ.soc}</p>
+        </div>
+        <Link
+          to={`${mapBase}/${occ.soc}`}
+          className="shrink-0 text-primary text-sm font-medium py-1"
+        >
+          Map →
+        </Link>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <dt className="text-xs text-muted">Entry salary</dt>
+          <dd className="font-mono text-ink mt-0.5">{formatSalary(occ.entrySalary)}</dd>
+          <p className="text-[11px] text-muted mt-0.5">
+            median {formatSalary(occ.medianSalary)}
+          </p>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">Openings</dt>
+          <dd className="font-mono text-ink mt-0.5">{formatNumber(occ.openPositions)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">Competition</dt>
+          <dd className="mt-0.5">
+            {compMeta ? (
+              <>
+                <span style={{ color: compMeta.color }} className="font-medium">
+                  {compMeta.label}
+                </span>
+                <p className="text-[11px] text-muted font-mono mt-0.5">
+                  {formatRatio(occ.graduatesPerOpening)} grads/opening
+                </p>
+              </>
+            ) : (
+              <span className="text-muted">—</span>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">{isV2 ? 'LLM Risk' : 'AI Risk'}</dt>
+          <dd className="mt-0.5">
+            {isV2 ? <EloundouCell score={eloundou} /> : <KarpathyCell occ={occ} />}
+          </dd>
+        </div>
+      </dl>
+    </motion.article>
   )
 }
 

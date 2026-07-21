@@ -158,12 +158,12 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
           <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
             {occupation.title}
           </h1>
-          <p className="text-muted mt-3 max-w-xl">
-            Click any state for a deep-dive. Color by employment, median salary, or jobs ×{' '}
+          <p className="text-muted mt-3 max-w-xl text-sm sm:text-base">
+            Tap any state for a deep-dive. Color by employment, median salary, or jobs ×{' '}
             {isV2 ? 'LLM Risk' : 'AI exposure'} (redder = more at risk).
           </p>
         </div>
-        <div className="flex flex-wrap gap-4 text-sm">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 text-sm w-full lg:w-auto">
           <Metric label="Entry Salary" value={formatSalary(occupation.entrySalary)} />
           <Metric label="Median Salary" value={formatSalary(occupation.medianSalary)} />
           <Metric label="Total Employment" value={formatNumber(occupation.totalEmployment)} />
@@ -274,7 +274,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
             </>
           ) : (
             <p className="text-muted text-sm leading-relaxed">
-              Hover or click a state to see employment and salary for{' '}
+              Tap a state to see employment and salary for{' '}
               {occupation.title.toLowerCase()}.
             </p>
           )}
@@ -293,9 +293,13 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white border border-border rounded-xl px-4 py-3 min-w-[120px]">
-      <div className="text-xs text-muted uppercase tracking-wider">{label}</div>
-      <div className="font-mono text-ink mt-1">{value}</div>
+    <div className="bg-white border border-border rounded-xl px-3 sm:px-4 py-3 min-w-0 sm:min-w-[120px] flex-1 sm:flex-none">
+      <div className="text-[10px] sm:text-xs text-muted uppercase tracking-wider leading-tight">
+        {label}
+      </div>
+      <div className="font-mono text-ink mt-1 text-sm sm:text-base tabular-nums break-all">
+        {value}
+      </div>
     </div>
   )
 }
@@ -312,10 +316,10 @@ function Legend({ colorBy, values }: { colorBy: MapColorBy; values: number[] }) 
         : 'Employment'
 
   return (
-    <div className="mt-4 flex items-center gap-3 text-xs text-muted">
-      <span>{label}</span>
+    <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
+      <span className="shrink-0">{label}</span>
       <div
-        className="h-2 flex-1 max-w-48 rounded-full"
+        className="h-2 flex-1 min-w-[6rem] max-w-48 rounded-full"
         style={{
           background:
             colorBy === 'aiImpact'
@@ -325,7 +329,7 @@ function Legend({ colorBy, values }: { colorBy: MapColorBy; values: number[] }) 
                 : 'linear-gradient(90deg, #283250, #dc7846)',
         }}
       />
-      <span className="font-mono">
+      <span className="font-mono text-[11px] sm:text-xs tabular-nums">
         {colorBy === 'salary' ? formatSalary(min) : formatNumber(min)} –{' '}
         {colorBy === 'salary' ? formatSalary(max) : formatNumber(max)}
       </span>

@@ -29,6 +29,22 @@
     background-image:
       radial-gradient(ellipse 90% 55% at 50% -25%, rgba(212, 85, 47, 0.1), transparent),
       radial-gradient(ellipse 50% 40% at 100% 0%, rgba(228, 228, 231, 0.7), transparent);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Avoid iOS zoom-on-focus for inputs under 16px in some contexts */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: inherit;
+    }
   }
 
   ::selection {

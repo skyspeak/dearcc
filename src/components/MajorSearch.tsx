@@ -10,6 +10,7 @@ interface MajorSearchProps {
   autoFocus?: boolean
   /** Base path for results, e.g. `/results` or `/v2/results` */
   resultsBase?: string
+  placeholder?: string
 }
 
 export function MajorSearch({
@@ -17,6 +18,7 @@ export function MajorSearch({
   size = 'lg',
   autoFocus = false,
   resultsBase = '/results',
+  placeholder = 'Search a major — e.g. Mechanical Engineering',
 }: MajorSearchProps) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -87,11 +89,17 @@ export function MajorSearch({
     }
   }
 
-  const pad = size === 'lg' ? 'py-4 text-lg pl-12 pr-4' : 'py-2.5 text-sm pl-10 pr-3'
-  const iconLeft = size === 'lg' ? 'left-4' : 'left-3'
+  const pad =
+    size === 'lg'
+      ? 'py-3.5 sm:py-4 text-base sm:text-lg pl-11 sm:pl-12 pr-4'
+      : 'py-2.5 text-base sm:text-sm pl-10 pr-3'
+  const iconLeft = size === 'lg' ? 'left-3.5 sm:left-4' : 'left-3'
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-2xl">
+    <div
+      ref={rootRef}
+      className={`relative w-full ${size === 'lg' ? 'max-w-2xl' : ''}`}
+    >
       <div className="relative">
         <svg
           className={`absolute ${iconLeft} top-1/2 -translate-y-1/2 text-muted pointer-events-none`}
@@ -115,12 +123,15 @@ export function MajorSearch({
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder="Search a major — e.g. Mechanical Engineering"
+          placeholder={placeholder}
           className={`w-full rounded-xl bg-white border border-border-bright text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm ${pad}`}
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls="major-results"
           role="combobox"
+          enterKeyHint="search"
+          autoCapitalize="off"
+          autoCorrect="off"
         />
       </div>
 
@@ -133,7 +144,7 @@ export function MajorSearch({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-20 mt-2 w-full max-h-80 overflow-auto rounded-xl border border-border-bright bg-white shadow-xl"
+            className="absolute z-40 mt-2 w-full max-h-[min(20rem,50vh)] overflow-auto rounded-xl border border-border-bright bg-white shadow-xl"
           >
             {results.map((major, i) => (
               <li key={major.cip} role="option" aria-selected={i === active}>
@@ -145,7 +156,9 @@ export function MajorSearch({
                     i === active ? 'bg-primary/10 text-ink' : 'text-ink/80 hover:bg-surface'
                   }`}
                 >
-                  <div className="font-medium">{major.name.replace(/\.$/, '')}</div>
+                  <div className="font-medium text-sm sm:text-base leading-snug">
+                    {major.name.replace(/\.$/, '')}
+                  </div>
                   <div className="text-xs text-muted mt-0.5 font-mono">
                     {major.category} · CIP {major.cip}
                   </div>

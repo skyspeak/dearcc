@@ -1,4 +1,4 @@
-/** Forward Field Report signups to StayRelevant partner enroll. */
+/** Forward Field Report signups to dear[CC] The Letter enroll API. */
 
 export type EnrollBody = {
   email: string
@@ -21,14 +21,13 @@ export async function forwardPartnerEnroll(body: EnrollBody): Promise<ForwardRes
     return { status: 400, json: { error: 'invalid email' } }
   }
 
-  const base = process.env.STAYRELEVANT_URL?.replace(/\/$/, '')
-  const secret =
-    process.env.STAYRELEVANT_PARTNER_SECRET ?? process.env.PARTNER_SECRET
+  const base = process.env.LETTER_URL?.replace(/\/$/, '')
+  const secret = process.env.LETTER_PARTNER_SECRET ?? process.env.PARTNER_SECRET
 
   if (!base || !secret) {
     return {
       status: 503,
-      json: { error: 'newsletter enroll not configured' },
+      json: { error: 'letter enroll not configured' },
     }
   }
 

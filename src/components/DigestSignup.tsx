@@ -2,9 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 
 export type DigestSignupProps = {
-  /** Major CIP category or similar — becomes StayRelevant industry */
+  /** Major CIP category or similar — personalization industry */
   industry?: string
-  /** Occupation title or student framing — becomes StayRelevant role */
+  /** Occupation title or student framing — personalization role */
   role?: string
   focusAreas?: string[]
   /** Attribution crumb, e.g. cip:11.0701 or soc:15-1252 */
@@ -64,14 +64,17 @@ export function DigestSignup({
       className="mt-14 border-t border-border pt-12"
     >
       <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
-        Next · StayRelevant
+        Next
       </p>
       <h2 className="font-serif text-2xl sm:text-3xl text-ink tracking-tight">
-        Get the weekly AI digest
+        dear
+        <span className="text-primary">[</span>
+        <span className="text-primary">CC</span>
+        <span className="text-primary">]</span> The Letter
       </h2>
       <p className="mt-3 text-muted max-w-xl leading-relaxed">
-        You just mapped the labor market. StayRelevant sends a 15-minute Sunday
-        email — real AI news, picks for your path, and one thing to build.
+        You just mapped the labor market. Get a 15-minute Sunday email — real AI
+        news, picks for your path, and one thing to build.
       </p>
 
       {status === 'sent' || status === 'skipped' ? (
@@ -85,7 +88,7 @@ export function DigestSignup({
               <p className="font-medium">{email}</p>
               <p className="mt-1 text-sm text-muted">
                 You&apos;re already on the list — check your inbox for this
-                week&apos;s issue.
+                week&apos;s letter.
               </p>
             </>
           ) : (
@@ -93,7 +96,7 @@ export function DigestSignup({
               <p className="font-medium">You&apos;re in.</p>
               <p className="mt-1 text-sm text-muted">
                 Check <span className="text-ink">{email}</span> for your first
-                issue. Sundays at 7pm in your timezone.
+                letter. Sundays at 7pm in your timezone.
               </p>
             </>
           )}
@@ -103,11 +106,11 @@ export function DigestSignup({
           onSubmit={onSubmit}
           className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg"
         >
-          <label className="sr-only" htmlFor="digest-email">
+          <label className="sr-only" htmlFor="letter-email">
             Email
           </label>
           <input
-            id="digest-email"
+            id="letter-email"
             type="email"
             required
             autoComplete="email"
@@ -122,14 +125,14 @@ export function DigestSignup({
             disabled={status === 'sending'}
             className="shrink-0 rounded-xl bg-primary px-5 py-3 font-medium text-white hover:bg-primary-bright disabled:opacity-50 transition-colors"
           >
-            {status === 'sending' ? 'Sending…' : 'Send my first issue'}
+            {status === 'sending' ? 'Sending…' : 'Send my first letter'}
           </button>
         </form>
       )}
 
       {status === 'sending' && (
         <p className="mt-3 text-xs text-muted max-w-lg">
-          Generating your first issue — usually under a minute.
+          Writing your first letter — usually under a minute.
         </p>
       )}
 
@@ -141,7 +144,7 @@ export function DigestSignup({
 
       {status === 'idle' && (
         <p className="mt-3 text-xs text-muted">
-          One-click unsubscribe. Powered by StayRelevant.
+          One-click unsubscribe. From dear[CC].
         </p>
       )}
     </motion.section>

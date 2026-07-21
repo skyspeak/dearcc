@@ -1,4 +1,4 @@
-// POST /api/subscribe — email capture → StayRelevant partner/enroll
+// POST /api/subscribe — email capture → dear[CC] The Letter enroll
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { forwardPartnerEnroll } from './_lib/forwardEnroll.js'

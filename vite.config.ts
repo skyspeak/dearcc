@@ -3,26 +3,27 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { forwardPartnerEnroll } from './api/_lib/forwardEnroll.js'
 
-/** Load .env.local keys into process.env for the local subscribe middleware. */
+/** Load .env.local / .env keys into process.env for local API middleware. */
 function loadLocalEnv() {
-  const path = resolve(process.cwd(), '.env.local')
-  if (!existsSync(path)) return
-  for (const line of readFileSync(path, 'utf8').split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const eq = trimmed.indexOf('=')
-    if (eq < 0) continue
-    const key = trimmed.slice(0, eq).trim()
-    let val = trimmed.slice(eq + 1).trim()
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1)
+  for (const name of ['.env.local', '.env'] as const) {
+    const path = resolve(process.cwd(), name)
+    if (!existsSync(path)) continue
+    for (const line of readFileSync(path, 'utf8').split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      const eq = trimmed.indexOf('=')
+      if (eq < 0) continue
+      const key = trimmed.slice(0, eq).trim()
+      let val = trimmed.slice(eq + 1).trim()
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
+        val = val.slice(1, -1)
+      }
+      if (!(key in process.env)) process.env[key] = val
     }
-    if (!(key in process.env)) process.env[key] = val
   }
 }
 
@@ -48,20 +49,38 @@ function subscribeDevApi(): Plugin {
           return
         }
         try {
-          const result = await forwardPartnerEnroll({
+          const { enrollSubscriber } = await import('./api/_lib/enroll.js')
+          const result = await enrollSubscriber({
             email: typeof body.email === 'string' ? body.email : '',
             industry: typeof body.industry === 'string' ? body.industry : null,
             role: typeof body.role === 'string' ? body.role : null,
-            focusAreas: Array.isArray(body.focusAreas) ? (body.focusAreas as string[]) : null,
+            name: typeof body.name === 'string' ? body.name : null,
+            focusAreas: Array.isArray(body.focusAreas)
+              ? (body.focusAreas as string[])
+              : null,
             sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
           })
-          res.statusCode = result.status
+          if (!result.ok) {
+            res.statusCode = result.status
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: result.error }))
+            return
+          }
+          res.statusCode = 200
           res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify(result.json))
-        } catch {
+          if ('skipped' in result) {
+            res.end(JSON.stringify({ ok: true, skipped: result.skipped }))
+          } else {
+            res.end(JSON.stringify({ ok: true, welcomeSent: result.welcomeSent }))
+          }
+        } catch (e) {
           res.statusCode = 500
           res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify({ error: 'enrollment failed' }))
+          res.end(
+            JSON.stringify({
+              error: e instanceof Error ? e.message : 'enrollment failed',
+            }),
+          )
         }
       })
     },

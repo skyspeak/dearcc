@@ -11,6 +11,18 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+
+# Prisma
+api/_lib/generated
+
+# Agent skill caches (local)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +34,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+/src/generated/prisma

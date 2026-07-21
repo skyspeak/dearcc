@@ -8,10 +8,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const { majors, loading } = useData()
   const isV2 = pathname.startsWith('/v2')
+  const isPlan = pathname.startsWith('/plan')
   const home = isV2 ? '/v2' : '/'
   const isHome = pathname === '/' || pathname === '/v2'
   const resultsBase = isV2 ? '/v2/results' : '/results'
-  const showGlobalSearch = !isHome && !loading && majors.length > 0
+  const showGlobalSearch = !isHome && !isPlan && !loading && majors.length > 0
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -57,9 +58,11 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <p className="hidden sm:block text-xs text-muted max-w-xs text-right leading-snug ml-auto">
-              {isV2
-                ? 'v2 preview · LLM Risk index'
-                : 'Salaries, openings & AI-exposure for every U.S. major.'}
+              {isPlan
+                ? 'Game Plan · gap analysis & roadmap'
+                : isV2
+                  ? 'v2 preview · LLM Risk index'
+                  : 'Salaries, openings & AI-exposure for every U.S. major.'}
             </p>
           )}
         </div>

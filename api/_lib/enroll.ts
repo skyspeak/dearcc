@@ -14,11 +14,13 @@ export type EnrollInput = {
   name?: string | null
   focusAreas?: string[] | null
   sourceRef?: string | null
+  linkedinUrl?: string | null
+  targetJob?: string | null
 }
 
 export type EnrollResult =
-  | { ok: true; skipped: 'already_enrolled' }
-  | { ok: true; welcomeSent: boolean }
+  | { ok: true; skipped: 'already_enrolled'; unsubscribeToken: string }
+  | { ok: true; welcomeSent: boolean; unsubscribeToken: string }
   | { ok: false; error: string; status: number }
 
 function cap(s: string, n = MAX_FIELD) {
@@ -65,13 +67,18 @@ export async function enrollSubscriber(input: EnrollInput): Promise<EnrollResult
   const focusAreas = normalizeFocusAreas(input.focusAreas)
   const sourceRef =
     typeof input.sourceRef === 'string' ? input.sourceRef.trim().slice(0, 80) : null
+  const linkedinUrl =
+    typeof input.linkedinUrl === 'string' && input.linkedinUrl.trim()
+      ? cap(input.linkedinUrl.trim(), 500)
+      : null
+  const targetJob =
+    typeof input.targetJob === 'string' && input.targetJob.trim()
+      ? cap(input.targetJob.trim(), 1000)
+      : null
 
   const existing = await prisma.newsletterSubscriber.findUnique({ where: { email } })
-  if (existing && !existing.unsubscribedAt && existing.welcomeSentAt) {
-    return { ok: true, skipped: 'already_enrolled' }
-  }
-
   const token = existing?.unsubscribeToken ?? randomBytes(24).toString('hex')
+  const alreadyWelcomed = Boolean(existing && !existing.unsubscribedAt && existing.welcomeSentAt)
 
   const sub = await prisma.newsletterSubscriber.upsert({
     where: { email },
@@ -83,6 +90,8 @@ export async function enrollSubscriber(input: EnrollInput): Promise<EnrollResult
       focusAreas: focusAreas.length ? focusAreas : ['AI literacy', 'career planning'],
       unsubscribeToken: token,
       sourceRef,
+      ...(linkedinUrl ? { linkedinUrl } : {}),
+      ...(targetJob ? { targetJob } : {}),
     },
     update: {
       ...(name ? { name } : {}),
@@ -90,9 +99,15 @@ export async function enrollSubscriber(input: EnrollInput): Promise<EnrollResult
       industry,
       ...(focusAreas.length ? { focusAreas } : {}),
       ...(sourceRef ? { sourceRef } : {}),
+      ...(linkedinUrl ? { linkedinUrl } : {}),
+      ...(targetJob ? { targetJob } : {}),
       unsubscribedAt: null,
     },
   })
+
+  if (alreadyWelcomed) {
+    return { ok: true, skipped: 'already_enrolled', unsubscribeToken: sub.unsubscribeToken }
+  }
 
   let welcomeSent = Boolean(sub.welcomeSentAt)
   if (!sub.welcomeSentAt) {
@@ -117,5 +132,5 @@ export async function enrollSubscriber(input: EnrollInput): Promise<EnrollResult
     welcomeSent = true
   }
 
-  return { ok: true, welcomeSent }
+  return { ok: true, welcomeSent, unsubscribeToken: sub.unsubscribeToken }
 }

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
 /** Load .env.local / .env keys into process.env for local API middleware. */
 function loadLocalEnv() {
@@ -27,61 +28,130 @@ function loadLocalEnv() {
   }
 }
 
-function subscribeDevApi(): Plugin {
+async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = []
+  for await (const chunk of req) chunks.push(Buffer.from(chunk))
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') as Record<
+      string,
+      unknown
+    >
+  } catch {
+    throw new Error('invalid json')
+  }
+}
+
+function sendJson(res: ServerResponse, status: number, body: unknown) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(body))
+}
+
+function localApiPlugin(): Plugin {
   return {
-    name: 'field-report-subscribe-api',
+    name: 'field-report-local-api',
     configureServer(server) {
       loadLocalEnv()
       server.middlewares.use(async (req, res, next) => {
-        if (req.method !== 'POST' || req.url?.split('?')[0] !== '/api/subscribe') {
-          next()
-          return
-        }
-        const chunks: Buffer[] = []
-        for await (const chunk of req) chunks.push(Buffer.from(chunk))
-        let body: Record<string, unknown> = {}
+        const url = new URL(req.url ?? '/', 'http://localhost')
+        const path = url.pathname
+
         try {
-          body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
-        } catch {
-          res.statusCode = 400
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify({ error: 'invalid json' }))
-          return
-        }
-        try {
-          const { enrollSubscriber } = await import('./api/_lib/enroll.js')
-          const result = await enrollSubscriber({
-            email: typeof body.email === 'string' ? body.email : '',
-            industry: typeof body.industry === 'string' ? body.industry : null,
-            role: typeof body.role === 'string' ? body.role : null,
-            name: typeof body.name === 'string' ? body.name : null,
-            focusAreas: Array.isArray(body.focusAreas)
-              ? (body.focusAreas as string[])
-              : null,
-            sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
-          })
-          if (!result.ok) {
-            res.statusCode = result.status
-            res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ error: result.error }))
+          if (req.method === 'POST' && path === '/api/subscribe') {
+            const body = await readJsonBody(req)
+            const { enrollSubscriber } = await import('./api/_lib/enroll.js')
+            const result = await enrollSubscriber({
+              email: typeof body.email === 'string' ? body.email : '',
+              industry: typeof body.industry === 'string' ? body.industry : null,
+              role: typeof body.role === 'string' ? body.role : null,
+              name: typeof body.name === 'string' ? body.name : null,
+              focusAreas: Array.isArray(body.focusAreas)
+                ? (body.focusAreas as string[])
+                : null,
+              sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
+            })
+            if (!result.ok) {
+              sendJson(res, result.status, { error: result.error })
+              return
+            }
+            if ('skipped' in result) {
+              sendJson(res, 200, { ok: true, skipped: result.skipped })
+            } else {
+              sendJson(res, 200, { ok: true, welcomeSent: result.welcomeSent })
+            }
             return
           }
-          res.statusCode = 200
-          res.setHeader('Content-Type', 'application/json')
-          if ('skipped' in result) {
-            res.end(JSON.stringify({ ok: true, skipped: result.skipped }))
-          } else {
-            res.end(JSON.stringify({ ok: true, welcomeSent: result.welcomeSent }))
+
+          if (req.method === 'GET' && path === '/api/plan/profile') {
+            const { getPlanProfile } = await import('./api/_lib/plan.js')
+            const result = await getPlanProfile(url.searchParams.get('t') ?? '')
+            if (!result.ok) {
+              sendJson(res, result.status, { error: result.error })
+              return
+            }
+            sendJson(res, 200, result)
+            return
+          }
+
+          if (req.method === 'POST' && path === '/api/plan/analyze') {
+            const body = await readJsonBody(req)
+            const { analyzeGamePlan } = await import('./api/_lib/plan.js')
+            const result = await analyzeGamePlan({
+              email: typeof body.email === 'string' ? body.email : '',
+              jobInput: typeof body.jobInput === 'string' ? body.jobInput : '',
+              linkedinUrl:
+                typeof body.linkedinUrl === 'string' ? body.linkedinUrl : null,
+              focusNote: typeof body.focusNote === 'string' ? body.focusNote : null,
+              fromLetter: Boolean(body.fromLetter),
+              token: typeof body.token === 'string' ? body.token : null,
+              name: typeof body.name === 'string' ? body.name : null,
+              role: typeof body.role === 'string' ? body.role : null,
+              industry: typeof body.industry === 'string' ? body.industry : null,
+              focusAreas: Array.isArray(body.focusAreas)
+                ? (body.focusAreas as string[])
+                : null,
+              sourceRef: typeof body.sourceRef === 'string' ? body.sourceRef : null,
+            })
+            if (!result.ok) {
+              sendJson(res, result.status, { error: result.error })
+              return
+            }
+            sendJson(res, 200, { ok: true, plan: result.plan })
+            return
+          }
+
+          if (req.method === 'POST' && path === '/api/plan/waitlist') {
+            const body = await readJsonBody(req)
+            const { joinCohortWaitlist } = await import('./api/_lib/plan.js')
+            const result = await joinCohortWaitlist(
+              typeof body.email === 'string' ? body.email : '',
+            )
+            if (!result.ok) {
+              sendJson(res, result.status, { error: result.error })
+              return
+            }
+            sendJson(res, 200, { ok: true, email: result.email })
+            return
+          }
+
+          if (req.method === 'GET' && path === '/api/plan/get') {
+            const { getGamePlanById } = await import('./api/_lib/plan.js')
+            const result = await getGamePlanById(url.searchParams.get('id') ?? '')
+            if (!result.ok) {
+              sendJson(res, result.status, { error: result.error })
+              return
+            }
+            sendJson(res, 200, { ok: true, plan: result.plan })
+            return
           }
         } catch (e) {
-          res.statusCode = 500
-          res.setHeader('Content-Type', 'application/json')
-          res.end(
-            JSON.stringify({
-              error: e instanceof Error ? e.message : 'enrollment failed',
-            }),
-          )
+          sendJson(res, e instanceof Error && e.message === 'invalid json' ? 400 : 500, {
+            error: e instanceof Error ? e.message : 'request failed',
+          })
+          return
         }
+
+        next()
       })
     },
   }
@@ -90,5 +160,5 @@ function subscribeDevApi(): Plugin {
 export default defineConfig({
   // Project Pages live at https://skyspeak.github.io/dearcc/
   base: process.env.GITHUB_PAGES === 'true' ? '/dearcc/' : '/',
-  plugins: [react(), tailwindcss(), subscribeDevApi()],
+  plugins: [react(), tailwindcss(), localApiPlugin()],
 })

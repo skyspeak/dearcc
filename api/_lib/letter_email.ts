@@ -1,12 +1,17 @@
 import { baseUrl, escapeHtml } from './html.js'
 import type { WeeklyIssueContent } from './templates.js'
 
+function gamePlanUrl(token: string): string {
+  return `${baseUrl()}/plan?from=letter&t=${encodeURIComponent(token)}`
+}
+
 export function buildWelcomeEmail(args: {
   email: string
   role?: string | null
   unsubscribeToken: string
 }): { subject: string; html: string; text: string } {
   const unsub = `${baseUrl()}/api/unsubscribe?t=${encodeURIComponent(args.unsubscribeToken)}`
+  const plan = gamePlanUrl(args.unsubscribeToken)
   const roleLine = args.role
     ? `We will bias picks toward <strong>${escapeHtml(args.role)}</strong>.`
     : 'We will personalize as we learn more about your path.'
@@ -21,7 +26,10 @@ export function buildWelcomeEmail(args: {
     <div style="font-size:12px;color:#71717a;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:20px">Welcome</div>
     <p style="font-size:15px;line-height:1.6;margin:0 0 14px">You are on the list. Every Sunday we send a 15-minute note — AI signal, labor-market context, and one thing to build.</p>
     <p style="font-size:15px;line-height:1.6;margin:0 0 14px">${roleLine}</p>
-    <p style="font-size:15px;line-height:1.6;margin:0 0 24px">Start anytime in <a href="${baseUrl()}" style="color:#d4552f">Field Report</a> — then let the weekly letter keep you current.</p>
+    <p style="font-size:15px;line-height:1.6;margin:0 0 20px">Keep exploring in <a href="${baseUrl()}" style="color:#d4552f">Field Report</a> — or take the next step:</p>
+    <p style="margin:0 0 24px">
+      <a href="${escapeHtml(plan)}" style="display:inline-block;background:#d4552f;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 18px;border-radius:10px">Build your Game Plan</a>
+    </p>
     <p style="font-size:12px;color:#71717a;margin:0;line-height:1.6">
       <a href="${escapeHtml(unsub)}" style="color:#71717a">Unsubscribe</a>
     </p>
@@ -34,6 +42,7 @@ You are on the list. Sundays ~15 min: AI signal, labor-market context, one build
 ${args.role ? `Biasing toward: ${args.role}` : ''}
 
 Field Report: ${baseUrl()}
+Build your Game Plan: ${plan}
 Unsubscribe: ${unsub}`
   return { subject, html, text }
 }
@@ -51,6 +60,7 @@ export function buildWeeklyNewsletterEmail(args: {
     timeZone: 'UTC',
   })
   const unsub = `${baseUrl()}/api/unsubscribe?t=${encodeURIComponent(args.unsubscribeToken)}`
+  const plan = gamePlanUrl(args.unsubscribeToken)
   const { content } = args
   const sectionsHtml = content.sections
     .map(
@@ -79,6 +89,10 @@ export function buildWeeklyNewsletterEmail(args: {
     <div style="font-size:12px;color:#71717a;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Action item</div>
     <div style="font-size:14px;line-height:1.55;background:#fdf2ee;border-left:3px solid #d4552f;padding:12px 14px;border-radius:0 6px 6px 0">${escapeHtml(content.actionItem)}</div>
     <hr style="border:none;border-top:1px solid #e4e4e7;margin:28px 0" />
+    <p style="font-size:15px;line-height:1.6;margin:0 0 12px">Ready for a personalized gap analysis?</p>
+    <p style="margin:0 0 24px">
+      <a href="${escapeHtml(plan)}" style="display:inline-block;background:#d4552f;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 18px;border-radius:10px">Build your Game Plan</a>
+    </p>
     <p style="font-size:12px;color:#71717a;margin:0;line-height:1.6">
       You are getting this because you signed up for dear[CC] The Letter from Field Report.
       <a href="${escapeHtml(unsub)}" style="color:#71717a">Unsubscribe</a>
@@ -98,6 +112,7 @@ Tool of the week: ${content.toolOfTheWeek.name} — ${content.toolOfTheWeek.blur
 
 Action: ${content.actionItem}
 
+Build your Game Plan: ${plan}
 Unsubscribe: ${unsub}`
 
   return { subject, html, text }

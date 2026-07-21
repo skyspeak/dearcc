@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { PLAN_EMAIL_KEY } from '../lib/planTypes'
 
 export type DigestSignupProps = {
   /** Major CIP category or similar — personalization industry */
@@ -48,6 +50,11 @@ export function DigestSignup({
       if (!res.ok) {
         throw new Error(data.error ?? `request failed (${res.status})`)
       }
+      try {
+        sessionStorage.setItem(PLAN_EMAIL_KEY, email.trim().toLowerCase())
+      } catch {
+        /* ignore */
+      }
       setStatus(data.skipped === 'already_enrolled' ? 'skipped' : 'sent')
     } catch (err) {
       setStatus('error')
@@ -88,7 +95,7 @@ export function DigestSignup({
               <p className="font-medium">{email}</p>
               <p className="mt-1 text-sm text-muted">
                 You&apos;re already on the list — check your inbox for this
-                week&apos;s letter.
+                week&apos;s letter (or the welcome note with your Game Plan link).
               </p>
             </>
           ) : (
@@ -96,10 +103,16 @@ export function DigestSignup({
               <p className="font-medium">You&apos;re in.</p>
               <p className="mt-1 text-sm text-muted">
                 Check <span className="text-ink">{email}</span> for your first
-                letter. Sundays at 7pm in your timezone.
+                letter. Weekly send: Sundays 14:00 UTC.
               </p>
             </>
           )}
+          <Link
+            to="/plan"
+            className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-bright transition-colors"
+          >
+            Build your Game Plan →
+          </Link>
         </div>
       ) : (
         <form

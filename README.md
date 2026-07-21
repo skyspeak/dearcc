@@ -16,3 +16,12 @@ See [SOURCES.md](./SOURCES.md). JSON lives in `public/data/` and refreshes with 
 ## Stack
 
 Vite · React · TypeScript · Tailwind v4 · React Router · Framer Motion · d3-geo
+
+## Weekly digest (StayRelevant)
+
+Results and map pages end with an email CTA. `POST /api/subscribe` forwards to StayRelevant `partner/enroll` (server-side secret).
+
+```bash
+cp .env.example .env.local
+# Set STAYRELEVANT_URL + STAYRELEVANT_PARTNER_SECRET (same as StayRelevant PARTNER_SECRET)
+```

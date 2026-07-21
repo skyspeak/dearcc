@@ -7,6 +7,7 @@ import type { Topology, GeometryCollection } from 'topojson-specification'
 import type { FeatureCollection, Geometry } from 'geojson'
 import { motion } from 'framer-motion'
 import { useData } from '../data/DataContext'
+import { DigestSignup } from '../components/DigestSignup'
 import { formatNumber, formatSalary, formatShare } from '../lib/format'
 import type { AiMode, MapColorBy } from '../types'
 
@@ -278,6 +279,13 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
           )}
         </aside>
       </div>
+
+      <DigestSignup
+        industry="Career exploration"
+        role={occupation.title}
+        focusAreas={[occupation.title, 'AI literacy', 'labor market']}
+        sourceRef={`soc:${occupation.soc}`}
+      />
     </div>
   )
 }

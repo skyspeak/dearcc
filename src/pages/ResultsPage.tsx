@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useData } from '../data/DataContext'
 import { MajorSearch } from '../components/MajorSearch'
+import { DigestSignup } from '../components/DigestSignup'
 import { formatNumber, formatRatio, formatSalary, formatShare } from '../lib/format'
 import {
   AI_BAND_COPY,
@@ -176,6 +177,13 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
               />
             </div>
           )}
+
+          <DigestSignup
+            industry={major.category}
+            role={`Student exploring ${major.name.replace(/\.$/, '')}`}
+            focusAreas={[major.name.replace(/\.$/, ''), major.category, 'AI literacy']}
+            sourceRef={`cip:${major.cip}`}
+          />
         </>
       )}
     </div>

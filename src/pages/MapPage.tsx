@@ -8,6 +8,7 @@ import type { FeatureCollection, Geometry } from 'geojson'
 import { motion } from 'framer-motion'
 import { useData } from '../data/DataContext'
 import { DigestSignup } from '../components/DigestSignup'
+import { ShareSheet } from '../components/ShareSheet'
 import { formatNumber, formatSalary, formatShare } from '../lib/format'
 import { assetUrl } from '../lib/assetUrl'
 import type { AiMode, MapColorBy } from '../types'
@@ -149,13 +150,13 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         ← Back to results
       </Link>
 
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
-        <div>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
             SOC {occupation.soc}
             {isV2 ? ' · LLM Risk' : ''}
           </p>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
+          <h1 className="font-serif text-2xl sm:text-4xl text-ink tracking-tight text-balance">
             {occupation.title}
           </h1>
           <p className="text-muted mt-3 max-w-xl text-sm sm:text-base">
@@ -163,19 +164,30 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
             {isV2 ? 'LLM Risk' : 'AI exposure'} (redder = more at risk).
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 text-sm w-full lg:w-auto">
-          <Metric label="Entry Salary" value={formatSalary(occupation.entrySalary)} />
-          <Metric label="Median Salary" value={formatSalary(occupation.medianSalary)} />
-          <Metric label="Total Employment" value={formatNumber(occupation.totalEmployment)} />
-          {isV2 ? (
-            <Metric
-              label="LLM Risk"
-              value={eloundou?.gptBeta != null ? formatShare(eloundou.gptBeta) : '—'}
-            />
-          ) : (
-            <Metric label="Annual Openings" value={formatNumber(occupation.openPositions)} />
-          )}
+        <div className="shrink-0 w-full sm:w-auto sm:pt-6">
+          <ShareSheet
+            title={occupation.title}
+            summary={
+              isV2
+                ? `State map for ${occupation.title} with BLS wages and LLM Risk — from dear[CC] Field report.`
+                : `State map for ${occupation.title} with BLS wages and AI exposure — from dear[CC] Field report.`
+            }
+          />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 text-sm w-full mb-6">
+        <Metric label="Entry Salary" value={formatSalary(occupation.entrySalary)} />
+        <Metric label="Median Salary" value={formatSalary(occupation.medianSalary)} />
+        <Metric label="Total Employment" value={formatNumber(occupation.totalEmployment)} />
+        {isV2 ? (
+          <Metric
+            label="LLM Risk"
+            value={eloundou?.gptBeta != null ? formatShare(eloundou.gptBeta) : '—'}
+          />
+        ) : (
+          <Metric label="Annual Openings" value={formatNumber(occupation.openPositions)} />
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-6 text-sm">

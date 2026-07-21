@@ -69,5 +69,7 @@ function subscribeDevApi(): Plugin {
 }
 
 export default defineConfig({
+  // Project Pages live at https://skyspeak.github.io/dearcc/
+  base: process.env.GITHUB_PAGES === 'true' ? '/dearcc/' : '/',
   plugins: [react(), tailwindcss(), subscribeDevApi()],
 })

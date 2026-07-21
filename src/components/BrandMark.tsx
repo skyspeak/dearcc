@@ -16,7 +16,7 @@ export function BrandMark({ size = 'sm', as: Tag = 'div' }: BrandMarkProps) {
       }`}
     >
       <img
-        src="/chinchilla.png"
+        src={`${import.meta.env.BASE_URL}chinchilla.png`}
         alt=""
         aria-hidden="true"
         className={`${logoClass} shrink-0 rounded-sm [image-rendering:pixelated]`}

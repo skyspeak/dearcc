@@ -5,10 +5,12 @@ import { HomePage } from './pages/HomePage'
 import { ResultsPage } from './pages/ResultsPage'
 import { MapPage } from './pages/MapPage'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export default function App() {
   return (
     <DataProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 import { useData } from '../data/DataContext'
 import { DigestSignup } from '../components/DigestSignup'
 import { formatNumber, formatSalary, formatShare } from '../lib/format'
+import { assetUrl } from '../lib/assetUrl'
 import type { AiMode, MapColorBy } from '../types'
 
 interface StateProps {
@@ -47,7 +48,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const res = await fetch('/us-states-topo.json')
+      const res = await fetch(assetUrl('us-states-topo.json'))
       const raw = (await res.json()) as Topology<{ states: GeometryCollection }>
       const obj = raw.objects.states ?? Object.values(raw.objects)[0]
       const fc = feature(raw, obj) as unknown as FeatureCollection<Geometry, StateProps>

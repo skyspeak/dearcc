@@ -15,6 +15,7 @@ import type {
   Occupation,
   StatesFile,
 } from '../types'
+import { assetUrl } from '../lib/assetUrl'
 
 interface DataContextValue {
   majors: Major[]
@@ -52,10 +53,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       try {
         const [m, o, c, e] = await Promise.all([
-          fetchJson<Major[]>('/data/majors.json'),
-          fetchJson<Occupation[]>('/data/occupations.json'),
-          fetchJson<Crosswalk>('/data/crosswalk.json'),
-          fetchJson<EloundouFile>('/data/eloundou.json'),
+          fetchJson<Major[]>(assetUrl('data/majors.json')),
+          fetchJson<Occupation[]>(assetUrl('data/occupations.json')),
+          fetchJson<Crosswalk>(assetUrl('data/crosswalk.json')),
+          fetchJson<EloundouFile>(assetUrl('data/eloundou.json')),
         ])
         if (cancelled) return
         setMajors(m)
@@ -77,7 +78,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (stateData || stateLoading) return
     setStateLoading(true)
     try {
-      const data = await fetchJson<StatesFile>('/data/states.json')
+      const data = await fetchJson<StatesFile>(assetUrl('data/states.json'))
       setStateData(data)
     } catch (err) {
       console.error('Failed to load state data:', err)

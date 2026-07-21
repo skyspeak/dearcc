@@ -9,6 +9,14 @@ npm install
 npm run dev
 ```
 
+## GitHub Pages
+
+Live at https://skyspeak.github.io/dearcc/ — built on every push to `main` via Actions (`GITHUB_PAGES=true` sets Vite base `/dearcc/`).
+
+In the repo: **Settings → Pages → Source = GitHub Actions** (required once).
+
+Note: `/api/subscribe` (The Letter enroll) only works on a Vercel/serverful host, not on static Pages.
+
 ## Data
 
 See [SOURCES.md](./SOURCES.md). JSON lives in `public/data/` and refreshes with the annual BLS OEWS release.

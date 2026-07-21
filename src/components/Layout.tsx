@@ -15,8 +15,8 @@ export function Layout({ children }: { children: ReactNode }) {
             <span>
               <span className="font-mono text-primary-bright">/v2</span>
               {' — '}
-              AI column = Eloundou et al. GPT-4 exposure β (GPTs-are-GPTs), not Frey &amp;
-              Osborne / Karpathy.
+              AI column = <span className="font-medium">LLM Risk</span> (Eloundou et al.
+              GPT-4 exposure, GPTs-are-GPTs), not Frey &amp; Osborne / Karpathy.
             </span>
             <Link to="/" className="underline text-white/80 hover:text-white shrink-0">
               Switch to v1
@@ -32,7 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <p className="hidden sm:block text-xs text-muted max-w-xs text-right leading-snug">
             {isV2
-              ? 'v2 preview · Eloundou LLM exposure index'
+              ? 'v2 preview · LLM Risk index'
               : 'Salaries, openings & AI-exposure for every U.S. major.'}
           </p>
         </div>

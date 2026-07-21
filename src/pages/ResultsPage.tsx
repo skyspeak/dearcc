@@ -108,14 +108,14 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <div>
           <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
             {major.category} · CIP {major.cip}
-            {isV2 ? ' · Eloundou β' : ''}
+            {isV2 ? ' · LLM Risk' : ''}
           </p>
           <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
             {major.name.replace(/\.$/, '')}
           </h1>
           <p className="text-muted mt-3 max-w-xl">
             {isV2
-              ? 'BLS wages plus Eloundou et al. GPT-4 exposure β (share of tasks exposed to LLMs).'
+              ? 'BLS wages plus LLM Risk (share of tasks exposed to LLMs).'
               : 'Occupations linked to this major, with BLS entry wages, openings, competition, and AI exposure.'}
           </p>
         </div>
@@ -147,7 +147,7 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
             />
             <SortChip
               active={sortField === aiSortField}
-              label={isV2 ? 'Eloundou β' : 'AI Risk'}
+              label={isV2 ? 'LLM Risk' : 'AI Risk'}
               onClick={() => onSort(aiSortField)}
             />
           </div>
@@ -244,7 +244,7 @@ function OccupationTable({
                 Competition
               </Th>
               <Th field={aiField} current={sortField} onSort={onSort}>
-                {isV2 ? 'Eloundou β' : 'AI Risk'}
+                {isV2 ? 'LLM Risk' : 'AI Risk'}
               </Th>
               <th className="px-4 py-3 font-medium" />
             </tr>

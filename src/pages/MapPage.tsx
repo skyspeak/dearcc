@@ -151,14 +151,14 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <div>
           <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
             SOC {occupation.soc}
-            {isV2 ? ' · Eloundou β' : ''}
+            {isV2 ? ' · LLM Risk' : ''}
           </p>
           <h1 className="font-serif text-3xl sm:text-4xl text-ink tracking-tight">
             {occupation.title}
           </h1>
           <p className="text-muted mt-3 max-w-xl">
             Click any state for a deep-dive. Color by employment, median salary, or jobs ×{' '}
-            {isV2 ? 'Eloundou β' : 'AI exposure'} (redder = more at risk).
+            {isV2 ? 'LLM Risk' : 'AI exposure'} (redder = more at risk).
           </p>
         </div>
         <div className="flex flex-wrap gap-4 text-sm">
@@ -167,7 +167,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
           <Metric label="Total Employment" value={formatNumber(occupation.totalEmployment)} />
           {isV2 ? (
             <Metric
-              label="Eloundou β"
+              label="LLM Risk"
               value={eloundou?.gptBeta != null ? formatShare(eloundou.gptBeta) : '—'}
             />
           ) : (
@@ -263,7 +263,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
                     </dd>
                     <p className="text-xs text-muted mt-1">
                       {isV2
-                        ? 'state employment × Eloundou β'
+                        ? 'state employment × LLM Risk'
                         : 'state employment × AI exposure / 10'}
                     </p>
                   </div>

@@ -22,7 +22,7 @@ export function HomePage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <BrandMark size="lg" as="h1" />
         {isV2 && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-mono text-primary">
-            /v2 · Eloundou GPT exposure
+            /v2 · LLM Risk
           </div>
         )}
         <p className="mt-6 text-xl sm:text-2xl text-ink/70 font-light leading-snug">

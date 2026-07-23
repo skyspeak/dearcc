@@ -1,19 +1,18 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { PLAN_EMAIL_KEY } from '../lib/planTypes'
 
 export type DigestSignupProps = {
-  /** Major CIP category or similar — personalization industry */
   industry?: string
-  /** Occupation title or student framing — personalization role */
   role?: string
   focusAreas?: string[]
-  /** Attribution crumb, e.g. cip:11.0701 or soc:15-1252 */
   sourceRef?: string
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'skipped' | 'error'
+
+function letterBase(): string {
+  return (import.meta.env.VITE_LETTER_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+}
 
 export function DigestSignup({
   industry,
@@ -24,14 +23,20 @@ export function DigestSignup({
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const base = letterBase()
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!email.trim()) return
+    if (!base) {
+      setStatus('error')
+      setErrorMsg('VITE_LETTER_URL is not configured')
+      return
+    }
     setStatus('sending')
     setErrorMsg(null)
     try {
-      const res = await fetch('/api/subscribe', {
+      const res = await fetch(`${base}/api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -50,11 +55,6 @@ export function DigestSignup({
       if (!res.ok) {
         throw new Error(data.error ?? `request failed (${res.status})`)
       }
-      try {
-        sessionStorage.setItem(PLAN_EMAIL_KEY, email.trim().toLowerCase())
-      } catch {
-        /* ignore */
-      }
       setStatus(data.skipped === 'already_enrolled' ? 'skipped' : 'sent')
     } catch (err) {
       setStatus('error')
@@ -70,9 +70,7 @@ export function DigestSignup({
       transition={{ duration: 0.35 }}
       className="mt-14 border-t border-border pt-12"
     >
-      <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
-        Next
-      </p>
+      <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">Next</p>
       <h2 className="font-serif text-2xl sm:text-3xl text-ink tracking-tight">
         dear
         <span className="text-primary">[</span>
@@ -80,8 +78,8 @@ export function DigestSignup({
         <span className="text-primary">]</span> The Letter
       </h2>
       <p className="mt-3 text-muted max-w-xl leading-relaxed">
-        You just mapped the labor market. Get a 15-minute Sunday email — real AI
-        news, picks for your path, and one thing to build.
+        You just mapped the labor market. Get a 15-minute Sunday email — real AI news,
+        picks for your path, and one thing to build.
       </p>
 
       {status === 'sent' || status === 'skipped' ? (
@@ -90,35 +88,23 @@ export function DigestSignup({
           aria-live="polite"
           className="mt-8 max-w-lg rounded-xl border border-border bg-surface px-5 py-4 text-ink"
         >
-          {status === 'skipped' ? (
-            <>
-              <p className="font-medium">{email}</p>
-              <p className="mt-1 text-sm text-muted">
-                You&apos;re already on the list — check your inbox for this
-                week&apos;s letter (or the welcome note with your Game Plan link).
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-medium">You&apos;re in.</p>
-              <p className="mt-1 text-sm text-muted">
-                Check <span className="text-ink">{email}</span> for your first
-                letter. Weekly send: Sundays 14:00 UTC.
-              </p>
-            </>
+          <p className="font-medium">
+            {status === 'skipped' ? "You're already on the list." : "You're in."}
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Check <span className="text-ink">{email}</span> for your letter.
+          </p>
+          {base && (
+            <a
+              href={base}
+              className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-bright transition-colors"
+            >
+              Open The Letter →
+            </a>
           )}
-          <Link
-            to="/plan"
-            className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-bright transition-colors"
-          >
-            Build your Game Plan →
-          </Link>
         </div>
       ) : (
-        <form
-          onSubmit={onSubmit}
-          className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg"
-        >
+        <form onSubmit={onSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg">
           <label className="sr-only" htmlFor="letter-email">
             Email
           </label>
@@ -143,12 +129,6 @@ export function DigestSignup({
         </form>
       )}
 
-      {status === 'sending' && (
-        <p className="mt-3 text-xs text-muted max-w-lg">
-          Writing your first letter — usually under a minute.
-        </p>
-      )}
-
       {status === 'error' && (
         <p role="alert" className="mt-3 text-sm text-red-600">
           {errorMsg ?? 'Something went wrong. Try again in a minute.'}
@@ -156,9 +136,7 @@ export function DigestSignup({
       )}
 
       {status === 'idle' && (
-        <p className="mt-3 text-xs text-muted">
-          One-click unsubscribe. From dear[CC].
-        </p>
+        <p className="mt-3 text-xs text-muted">Powered by dear[CC] The Letter.</p>
       )}
     </motion.section>
   )

@@ -8,11 +8,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const { majors, loading } = useData()
   const isV2 = pathname.startsWith('/v2')
-  const isPlan = pathname.startsWith('/plan')
   const home = isV2 ? '/v2' : '/'
   const isHome = pathname === '/' || pathname === '/v2'
   const resultsBase = isV2 ? '/v2/results' : '/results'
-  const showGlobalSearch = !isHome && !isPlan && !loading && majors.length > 0
+  const showGlobalSearch = !isHome && !loading && majors.length > 0
+  const letterUrl = (import.meta.env.VITE_LETTER_URL as string | undefined)?.replace(/\/$/, '')
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -25,7 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <span className="hidden sm:inline">
                 {' — '}
                 AI column = <span className="font-medium">LLM Risk</span> (Eloundou et al.
-                GPT-4 exposure, GPTs-are-GPTs), not Frey &amp; Osborne / Karpathy.
+                GPT-4 exposure), not Frey &amp; Osborne / Karpathy.
               </span>
             </span>
             <Link to="/" className="underline text-white/80 hover:text-white shrink-0">
@@ -58,11 +58,9 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <p className="hidden sm:block text-xs text-muted max-w-xs text-right leading-snug ml-auto">
-              {isPlan
-                ? 'Game Plan · gap analysis & roadmap'
-                : isV2
-                  ? 'v2 preview · LLM Risk index'
-                  : 'Salaries, openings & AI-exposure for every U.S. major.'}
+              {isV2
+                ? 'v2 preview · LLM Risk index'
+                : 'Salaries, openings & AI-exposure for every U.S. major.'}
             </p>
           )}
         </div>
@@ -78,29 +76,15 @@ export function Layout({ children }: { children: ReactNode }) {
             </p>
             <p className="text-muted mt-2 max-w-2xl leading-relaxed text-xs sm:text-sm">
               Salaries & openings: BLS OEWS May 2024. Growth: 10-year BLS projections
-              (2024–2034). Competition: IPEDS completions ÷ BLS openings.{' '}
-              {isV2 ? (
-                <>
-                  AI exposure (v2): Eloundou et al. (2023){' '}
-                  <a
-                    className="underline hover:text-ink"
-                    href="https://github.com/openai/GPTs-are-GPTs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    GPTs-are-GPTs
-                  </a>{' '}
-                  GPT-4 β = E1 + 0.5·E2, aggregated O*NET → SOC.
-                </>
-              ) : (
-                <>
-                  AI exposure: Karpathy/BLS OOH (LLM-scored 2025) + Frey & Osborne (2013
-                  baseline).
-                </>
-              )}
+              (2024–2034). Competition: IPEDS completions ÷ BLS openings.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-muted text-xs">
+            {letterUrl && (
+              <a className="hover:text-ink underline" href={letterUrl}>
+                The Letter
+              </a>
+            )}
             <a
               className="hover:text-ink underline"
               href="https://www.bls.gov/oes/"
@@ -109,25 +93,6 @@ export function Layout({ children }: { children: ReactNode }) {
             >
               BLS OEWS
             </a>
-            {isV2 ? (
-              <a
-                className="hover:text-ink underline"
-                href="https://github.com/openai/GPTs-are-GPTs"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GPTs-are-GPTs
-              </a>
-            ) : (
-              <a
-                className="hover:text-ink underline"
-                href="https://www.bls.gov/emp/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                BLS Projections
-              </a>
-            )}
             <a
               className="hover:text-ink underline"
               href="https://www.onetcenter.org/"

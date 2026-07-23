@@ -11,7 +11,7 @@ import { DigestSignup } from '../components/DigestSignup'
 import { ShareSheet } from '../components/ShareSheet'
 import { formatNumber, formatSalary, formatShare } from '../lib/format'
 import { assetUrl } from '../lib/assetUrl'
-import type { AiMode, MapColorBy } from '../types'
+import type { MapColorBy } from '../types'
 
 interface StateProps {
   name?: string
@@ -29,15 +29,14 @@ const FIPS_TO_ABBR: Record<string, string> = {
   '54': 'WV', '55': 'WI', '56': 'WY',
 }
 
-export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
+export function MapPage({ routePrefix = '' }: { routePrefix?: '' | '/v2' }) {
   const { socCode = '' } = useParams()
   const { occupationsBySoc, eloundouBySoc, stateData, loading, loadStateData } = useData()
   const [colorBy, setColorBy] = useState<MapColorBy>('employment')
   const [selected, setSelected] = useState<string | null>(null)
   const [topo, setTopo] = useState<FeatureCollection<Geometry, StateProps> | null>(null)
   const [hover, setHover] = useState<string | null>(null)
-  const isV2 = aiMode === 'eloundou'
-  const home = isV2 ? '/v2' : '/'
+  const home = routePrefix || '/'
 
   const occupation = occupationsBySoc.get(socCode)
   const eloundou = eloundouBySoc.get(socCode)
@@ -63,9 +62,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
   const values = useMemo(() => {
     const map: Record<string, number> = {}
     if (!stateData || !occupation) return map
-    const exposure = isV2
-      ? (eloundou?.gptBeta ?? 0)
-      : (occupation.karpathyExposure ?? 0) / 10
+    const exposure = (occupation.karpathyExposure ?? 0) / 10
     for (const [abbr, state] of Object.entries(stateData)) {
       const cell = state.occupations[socCode]
       if (!cell) continue
@@ -74,7 +71,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
       else map[abbr] = cell.employment * exposure
     }
     return map
-  }, [stateData, occupation, socCode, colorBy, isV2, eloundou])
+  }, [stateData, occupation, socCode, colorBy])
 
   const colorScale = useMemo(() => {
     const nums = Object.values(values).filter((v) => v > 0)
@@ -154,24 +151,19 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2">
             SOC {occupation.soc}
-            {isV2 ? ' · LLM Risk' : ''}
           </p>
           <h1 className="font-serif text-2xl sm:text-4xl text-ink tracking-tight text-balance">
             {occupation.title}
           </h1>
           <p className="text-muted mt-3 max-w-xl text-sm sm:text-base">
-            Tap any state for a deep-dive. Color by employment, median salary, or jobs ×{' '}
-            {isV2 ? 'LLM Risk' : 'AI exposure'} (redder = more at risk).
+            Tap any state for a deep-dive. Color by employment, median salary, or jobs × AI
+            exposure (redder = more at risk).
           </p>
         </div>
         <div className="shrink-0 w-full sm:w-auto sm:pt-6">
           <ShareSheet
             title={occupation.title}
-            summary={
-              isV2
-                ? `State map for ${occupation.title} with BLS wages and LLM Risk — from dear[CC] Field report.`
-                : `State map for ${occupation.title} with BLS wages and AI exposure — from dear[CC] Field report.`
-            }
+            summary={`State map for ${occupation.title} with BLS wages, AI Risk, and Eloundou β — from dear[CC] Field report.`}
           />
         </div>
       </div>
@@ -180,14 +172,17 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <Metric label="Entry Salary" value={formatSalary(occupation.entrySalary)} />
         <Metric label="Median Salary" value={formatSalary(occupation.medianSalary)} />
         <Metric label="Total Employment" value={formatNumber(occupation.totalEmployment)} />
-        {isV2 ? (
-          <Metric
-            label="LLM Risk"
-            value={eloundou?.gptBeta != null ? formatShare(eloundou.gptBeta) : '—'}
-          />
-        ) : (
-          <Metric label="Annual Openings" value={formatNumber(occupation.openPositions)} />
-        )}
+        <Metric label="Annual Openings" value={formatNumber(occupation.openPositions)} />
+        <Metric
+          label="AI Risk"
+          value={
+            occupation.karpathyExposure != null ? `${occupation.karpathyExposure}/10` : '—'
+          }
+        />
+        <Metric
+          label="Eloundou β"
+          value={eloundou?.gptBeta != null ? formatShare(eloundou.gptBeta) : '—'}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-6 text-sm">
@@ -276,9 +271,7 @@ export function MapPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
                       {formatNumber(active.value)}
                     </dd>
                     <p className="text-xs text-muted mt-1">
-                      {isV2
-                        ? 'state employment × LLM Risk'
-                        : 'state employment × AI exposure / 10'}
+                      state employment × AI exposure / 10
                     </p>
                   </div>
                 )}

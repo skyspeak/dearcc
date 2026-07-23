@@ -13,7 +13,6 @@ import {
   aiBandFromScore,
 } from '../lib/labels'
 import type {
-  AiMode,
   CompetitionLevel,
   EloundouScore,
   Occupation,
@@ -21,12 +20,11 @@ import type {
   SortField,
 } from '../types'
 
-export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
+export function ResultsPage({ routePrefix = '' }: { routePrefix?: '' | '/v2' }) {
   const { cipCode = '' } = useParams()
   const { majors, occupationsBySoc, crosswalk, eloundouBySoc, loading } = useData()
-  const isV2 = aiMode === 'eloundou'
-  const home = isV2 ? '/v2' : '/'
-  const mapBase = isV2 ? '/v2/map' : '/map'
+  const home = routePrefix || '/'
+  const mapBase = `${routePrefix}/map`
 
   const [sortField, setSortField] = useState<SortField>('entrySalary')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -97,7 +95,6 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
   }
 
   const all = [...relevant, ...other]
-  const aiSortField: SortField = isV2 ? 'eloundouBeta' : 'karpathyExposure'
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-12">
@@ -109,25 +106,19 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wider text-muted font-mono mb-2 break-words">
             {major.category} · CIP {major.cip}
-            {isV2 ? ' · LLM Risk' : ''}
           </p>
           <h1 className="font-serif text-2xl sm:text-4xl text-ink tracking-tight text-balance">
             {major.name.replace(/\.$/, '')}
           </h1>
           <p className="text-muted mt-3 max-w-xl text-sm sm:text-base">
-            {isV2
-              ? 'BLS wages plus LLM Risk (share of tasks exposed to LLMs).'
-              : 'Occupations linked to this major, with BLS entry wages, openings, competition, and AI exposure.'}
+            Occupations linked to this major, with BLS entry wages, openings, competition, AI
+            Risk, and Eloundou β (LLM exposure).
           </p>
         </div>
         <div className="shrink-0 w-full sm:w-auto sm:pt-6">
           <ShareSheet
             title={major.name.replace(/\.$/, '')}
-            summary={
-              isV2
-                ? 'BLS wages and LLM Risk for careers linked to this major — from dear[CC] Field report.'
-                : 'BLS salaries, openings, and AI exposure for careers linked to this major — from dear[CC] Field report.'
-            }
+            summary="BLS salaries, openings, AI Risk, and Eloundou β for careers linked to this major — from dear[CC] Field report."
           />
         </div>
       </div>
@@ -154,9 +145,14 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
               onClick={() => onSort('graduatesPerOpening')}
             />
             <SortChip
-              active={sortField === aiSortField}
-              label={isV2 ? 'LLM Risk' : 'AI Risk'}
-              onClick={() => onSort(aiSortField)}
+              active={sortField === 'karpathyExposure'}
+              label="AI Risk"
+              onClick={() => onSort('karpathyExposure')}
+            />
+            <SortChip
+              active={sortField === 'eloundouBeta'}
+              label="Eloundou β"
+              onClick={() => onSort('eloundouBeta')}
             />
           </div>
 
@@ -166,7 +162,6 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
               occupations={relevant}
               sortField={sortField}
               onSort={onSort}
-              aiMode={aiMode}
               mapBase={mapBase}
               eloundouBySoc={eloundouBySoc}
             />
@@ -178,7 +173,6 @@ export function ResultsPage({ aiMode = 'default' }: { aiMode?: AiMode }) {
                 occupations={other}
                 sortField={sortField}
                 onSort={onSort}
-                aiMode={aiMode}
                 mapBase={mapBase}
                 eloundouBySoc={eloundouBySoc}
               />
@@ -226,7 +220,6 @@ function OccupationTable({
   occupations,
   sortField,
   onSort,
-  aiMode,
   mapBase,
   eloundouBySoc,
 }: {
@@ -234,13 +227,9 @@ function OccupationTable({
   occupations: Occupation[]
   sortField: SortField
   onSort: (f: SortField) => void
-  aiMode: AiMode
   mapBase: string
   eloundouBySoc: Map<string, EloundouScore>
 }) {
-  const isV2 = aiMode === 'eloundou'
-  const aiField: SortField = isV2 ? 'eloundouBeta' : 'karpathyExposure'
-
   return (
     <section>
       <h2 className="font-serif text-xl text-ink mb-4">{title}</h2>
@@ -252,7 +241,6 @@ function OccupationTable({
             key={occ.soc}
             occ={occ}
             index={i}
-            aiMode={aiMode}
             mapBase={mapBase}
             eloundou={eloundouBySoc.get(occ.soc)}
           />
@@ -261,7 +249,7 @@ function OccupationTable({
 
       {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-white">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-left text-sm">
           <thead className="bg-surface text-muted text-xs uppercase tracking-wider">
             <tr>
               <th className="px-4 py-3 font-medium">Occupation</th>
@@ -274,8 +262,11 @@ function OccupationTable({
               <Th field="graduatesPerOpening" current={sortField} onSort={onSort}>
                 Competition
               </Th>
-              <Th field={aiField} current={sortField} onSort={onSort}>
-                {isV2 ? 'LLM Risk' : 'AI Risk'}
+              <Th field="karpathyExposure" current={sortField} onSort={onSort}>
+                AI Risk
+              </Th>
+              <Th field="eloundouBeta" current={sortField} onSort={onSort}>
+                Eloundou β
               </Th>
               <th className="px-4 py-3 font-medium" />
             </tr>
@@ -286,7 +277,6 @@ function OccupationTable({
                 key={occ.soc}
                 occ={occ}
                 index={i}
-                aiMode={aiMode}
                 mapBase={mapBase}
                 eloundou={eloundouBySoc.get(occ.soc)}
               />
@@ -327,19 +317,16 @@ function Th({
 function OccRow({
   occ,
   index,
-  aiMode,
   mapBase,
   eloundou,
 }: {
   occ: Occupation
   index: number
-  aiMode: AiMode
   mapBase: string
   eloundou?: EloundouScore
 }) {
   const competition = occ.competitionLevel as CompetitionLevel | null
   const compMeta = competition ? COMPETITION_COPY[competition] : null
-  const isV2 = aiMode === 'eloundou'
 
   return (
     <motion.tr
@@ -376,7 +363,10 @@ function OccRow({
         )}
       </td>
       <td className="px-4 py-4">
-        {isV2 ? <EloundouCell score={eloundou} /> : <KarpathyCell occ={occ} />}
+        <KarpathyCell occ={occ} />
+      </td>
+      <td className="px-4 py-4">
+        <EloundouCell score={eloundou} />
       </td>
       <td className="px-4 py-4 text-right">
         <Link
@@ -393,19 +383,16 @@ function OccRow({
 function OccCard({
   occ,
   index,
-  aiMode,
   mapBase,
   eloundou,
 }: {
   occ: Occupation
   index: number
-  aiMode: AiMode
   mapBase: string
   eloundou?: EloundouScore
 }) {
   const competition = occ.competitionLevel as CompetitionLevel | null
   const compMeta = competition ? COMPETITION_COPY[competition] : null
-  const isV2 = aiMode === 'eloundou'
 
   return (
     <motion.article
@@ -457,9 +444,15 @@ function OccCard({
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-muted">{isV2 ? 'LLM Risk' : 'AI Risk'}</dt>
+          <dt className="text-xs text-muted">AI Risk</dt>
           <dd className="mt-0.5">
-            {isV2 ? <EloundouCell score={eloundou} /> : <KarpathyCell occ={occ} />}
+            <KarpathyCell occ={occ} />
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">Eloundou β</dt>
+          <dd className="mt-0.5">
+            <EloundouCell score={eloundou} />
           </dd>
         </div>
       </dl>

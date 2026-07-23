@@ -16,12 +16,14 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/results/:cipCode" element={<ResultsPage />} />
             <Route path="/map/:socCode" element={<MapPage />} />
-            <Route path="/v2" element={<HomePage aiMode="eloundou" />} />
+
+            {/* /v2 aliases keep old links working; same combined Field Report. */}
+            <Route path="/v2" element={<HomePage routePrefix="/v2" />} />
             <Route
               path="/v2/results/:cipCode"
-              element={<ResultsPage aiMode="eloundou" />}
+              element={<ResultsPage routePrefix="/v2" />}
             />
-            <Route path="/v2/map/:socCode" element={<MapPage aiMode="eloundou" />} />
+            <Route path="/v2/map/:socCode" element={<MapPage routePrefix="/v2" />} />
           </Routes>
         </Layout>
       </BrowserRouter>

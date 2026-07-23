@@ -60,8 +60,6 @@ export type SortDirection = 'asc' | 'desc'
 
 export type MapColorBy = 'employment' | 'salary' | 'aiImpact'
 
-export type AiMode = 'default' | 'eloundou'
-
 export interface EloundouScore {
   soc: string
   title: string

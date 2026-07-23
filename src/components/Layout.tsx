@@ -16,25 +16,6 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
-      {isV2 && (
-        <div className="bg-ink text-white text-xs">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="leading-snug min-w-0">
-              <span className="font-mono text-primary-bright">/v2</span>
-              <span className="sm:hidden"> · LLM Risk preview</span>
-              <span className="hidden sm:inline">
-                {' — '}
-                AI column = <span className="font-medium">LLM Risk</span> (Eloundou et al.
-                GPT-4 exposure), not Frey &amp; Osborne / Karpathy.
-              </span>
-            </span>
-            <Link to="/" className="underline text-white/80 hover:text-white shrink-0">
-              Switch to v1
-            </Link>
-          </div>
-        </div>
-      )}
-
       <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-30">
         <div
           className={`mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 ${
@@ -58,9 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <p className="hidden sm:block text-xs text-muted max-w-xs text-right leading-snug ml-auto">
-              {isV2
-                ? 'v2 preview · LLM Risk index'
-                : 'Salaries, openings & AI-exposure for every U.S. major.'}
+              Salaries, openings, AI Risk & Eloundou β for every U.S. major.
             </p>
           )}
         </div>
@@ -76,7 +55,18 @@ export function Layout({ children }: { children: ReactNode }) {
             </p>
             <p className="text-muted mt-2 max-w-2xl leading-relaxed text-xs sm:text-sm">
               Salaries & openings: BLS OEWS May 2024. Growth: 10-year BLS projections
-              (2024–2034). Competition: IPEDS completions ÷ BLS openings.
+              (2024–2034). Competition: IPEDS completions ÷ BLS openings. AI Risk:
+              Karpathy/BLS OOH (LLM-scored 2025) + Frey &amp; Osborne (2013 baseline).
+              Eloundou β: Eloundou et al. (2023){' '}
+              <a
+                className="underline hover:text-ink"
+                href="https://github.com/openai/GPTs-are-GPTs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GPTs-are-GPTs
+              </a>{' '}
+              GPT-4 β = E1 + 0.5·E2, aggregated O*NET → SOC.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-muted text-xs">
@@ -92,6 +82,22 @@ export function Layout({ children }: { children: ReactNode }) {
               rel="noopener noreferrer"
             >
               BLS OEWS
+            </a>
+            <a
+              className="hover:text-ink underline"
+              href="https://www.bls.gov/emp/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              BLS Projections
+            </a>
+            <a
+              className="hover:text-ink underline"
+              href="https://github.com/openai/GPTs-are-GPTs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GPTs-are-GPTs
             </a>
             <a
               className="hover:text-ink underline"
